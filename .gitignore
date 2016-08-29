@@ -1,0 +1,12 @@
+# OS
+pids
+*.pid
+*.seed
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency
+node_modules

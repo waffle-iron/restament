@@ -1,0 +1,28 @@
+{
+  "name": "restament",
+  "version": "0.0.1",
+  "description": "Testing Framework for REST APIs with JSON-like Declaration",
+  "main": "index.js",
+  "devDependencies": {
+    "eslint-config-growaspeople": "latest"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phanect/restament.git"
+  },
+  "keywords": [
+    "REST",
+    "test",
+    "API",
+    "JSON"
+  ],
+  "author": "Jumpei Ogawa",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/phanect/restament/issues"
+  },
+  "homepage": "https://github.com/phanect/restament#readme"
+}
