@@ -31,7 +31,7 @@ let restament = new Restament({
   }
 });
 
-restament.add([
+restament.test([
   {
     url:       "/v1/messages", // API URL
     method:    "POST", // HTTP method
@@ -89,6 +89,4 @@ restament.add([
     }
   }
 ]);
-
-restament.test();
 ```
