@@ -12,6 +12,23 @@ const path = require("path"),
 
 module.exports = class {
   /**
+   * Use `not` in db[].result.data to assert if values differ
+   * @return {object} Restament's `not` object
+   */
+  static not() {
+    const args = [];
+
+    for (const argument of arguments) {
+      args.push(argument);
+    }
+
+    return {
+      type:   "not",
+      values: args
+    };
+  }
+
+  /**
    * Constructor for Restament
    *
    * @param {object} opts             Options
@@ -238,6 +255,14 @@ module.exports = class {
                   }
 
                   for (let i = 0; i < records.length; i++) {
+                    // Check if there is Restament.not
+                    for (const key of Object.getOwnPropertyNames(table.result.data[i])) {
+                      if (typeof table.result.data[i][key] === "object" && table.result.data[i][key].type === "not") {
+                        expect(table.result.data[i][key]).not.to.be(records[i][key]);
+                        delete table.result.data[i][key];
+                        delete records[i][key];
+                      }
+                    }
                     records[i].should.be.eql(table.result.data[i]); // Use should.js for object comparison
                   }
 

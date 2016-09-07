@@ -59,6 +59,21 @@ restament.test([
             id:        0,
             text:      "Hello, World!",
             postedAt:  "2016-09-01 14:03:01"
+          }
+        ],
+        uploads: [
+          {
+            src:  "uploads/indexbgs-1.png",
+            dest: "djtv9VvnawQE7ZQTj7N2d70Xy6jb1cPZICtFY5EqMDt7YFLSv7IHN4SvmegZEl"
+          }
+        ]
+      },
+      result:      { // Mock data which inserted before this test
+        data: [
+          {
+            id:       0,
+            text:     Restament.not("Hello, World!"),
+            postedAt: "2016-09-01 14:03:01"
           },
           {
             id:            1,
@@ -73,8 +88,8 @@ restament.test([
          */
         uploads: [
           {
-            src:  "uploads/indexbgs-1.png",
-            dest: "djtv9Vvna.png"
+            filename: "djtv9VvnawQE7ZQTj7N2d70Xy6jb1cPZICtFY5EqMDt7YFLSv7IHN4SvmegZEl",
+            original:  "uploads/indexbgs-1.png"
           }
         ]
       }
