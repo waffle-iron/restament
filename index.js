@@ -81,7 +81,7 @@ module.exports = class {
     }
 
     for (const test of tests) {
-      const uri = self.endpoint + test.url + (test.method === "GET" ? "?sortby=id" : "");
+      const uri = self.endpoint + test.url;
 
       describe(test.url, function() {
         this.timeout(5000);
