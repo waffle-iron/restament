@@ -258,7 +258,10 @@ module.exports = class {
                     // Check if there is Restament.not
                     for (const key of Object.getOwnPropertyNames(table.result.data[i])) {
                       if (typeof table.result.data[i][key] === "object" && table.result.data[i][key].type === "not") {
-                        expect(table.result.data[i][key]).not.to.be(records[i][key]);
+                        table.result.data[i][key].values.forEach(function(val) {
+                          expect(val).not.to.be(records[i][key]);
+                        });
+
                         delete table.result.data[i][key];
                         delete records[i][key];
                       }
