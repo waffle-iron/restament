@@ -123,8 +123,20 @@ module.exports = class {
             // Empty storage directory
             fs.emptyDirSync(self.uploadDir);
 
+            // Reset auto increment
+            Promise.all((Array.isArray(test.db) ? test.db : [test.db]).map(function(table) {
+              return new Promise(function(_resolve, _reject) {
+                lightOrm.driver.query("ALTER TABLE " + table.tablename + " AUTO_INCREMENT = 1;", function(err) {
+                  if (err) {
+                    _reject(err);
+                  }
+                  _resolve();
+                });
+              });
+            })).then(resolve).catch(reject);
+          }).then(function() {
             // Remove existing records
-            Promise.all(dbtables.map(function(dbtable) {
+            return Promise.all(dbtables.map(function(dbtable) {
               return new Promise(function(resolve, reject) {
                 dbtable.table.findAll(function(err, existingRecords) {
                   if (err) {
@@ -143,7 +155,7 @@ module.exports = class {
                   })).then(resolve).catch(reject);
                 });
               });
-            })).then(resolve).catch(reject);
+            }));
           }).then(function() {
             return Promise.all(dbtables.map(function(table) {
               let models = []; // eslint-disable-line prefer-const
