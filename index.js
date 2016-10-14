@@ -268,7 +268,7 @@ module.exports = class {
                           expect(expectedColumnData(actualColumnData)).to.be(true);
                         } else { // expectedColumnData is literal
                           // Check equality
-                          expect(actualColumnData).to.be(table.result.data[i]);
+                          expect(actualColumnData).to.be(expectedColumnData);
                         }
                       }
                     }
