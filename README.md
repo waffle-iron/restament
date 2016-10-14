@@ -71,12 +71,16 @@ restament.test([
       result:      { // Mock data which inserted before this test
         data: [
           {
-            id:       0,
+            id:       function(actualData) { // return true if assertion succeed. If failed, return false.
+              return (typeof actualData === "number"); // If data is number, assertion succeed.
+            },
             text:     Restament.not("Hello, World!"),
             postedAt: "2016-09-01 14:03:01"
           },
           {
-            id:            1,
+            id:       function(actualData) {
+              return (typeof actualData === "number");
+            },
             text:          "Goodbye, World...",
             postedAt:      "2016-09-02 11:26:24",
             attachedImage: "djtv9VvnawQE7ZQTj7N2d70Xy6jb1cPZICtFY5EqMDt7YFLSv7IHN4SvmegZEl"

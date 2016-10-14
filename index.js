@@ -258,18 +258,19 @@ module.exports = class {
                     }
 
                     for (let i = 0; i < records.length; i++) {
-                      // Check if there is Restament.not
                       for (const key of Object.getOwnPropertyNames(table.result.data[i])) {
                         const expectedColumnData = table.result.data[i][key],
                               actualColumnData = records[i][key];
 
-                        if (typeof expectedColumnData === "object" && expectedColumnData.type === "not") {
+                        if (typeof expectedColumnData === "object" && expectedColumnData.type === "not") { // If Restament.not is expected
                           expect(expectedColumnData).not.to.be(actualColumnData);
-                          delete table.result.data[i][key];
-                          delete records[i][key];
+                        } else if (typeof expectedColumnData === "function") {
+                          expect(expectedColumnData(actualColumnData)).to.be(true);
+                        } else { // expectedColumnData is literal
+                          // Check equality
+                          expect(actualColumnData).to.be(table.result.data[i]);
                         }
                       }
-                      records[i].should.be.eql(table.result.data[i]); // Use should.js for object comparison
                     }
 
                     resolve();
