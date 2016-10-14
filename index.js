@@ -63,7 +63,7 @@ module.exports = class {
         host:     this.config.db.host,
         database: this.config.db.name,
         user:     this.config.db.user,
-        password: this.config.db.password,
+        password: this.config.db.password
       });
       lightOrm.driver.connect();
     }
@@ -227,90 +227,107 @@ module.exports = class {
             });
           }).then(function(res) { // Assertion for response
             expect(res.status).to.be(test.status);
-            return res.json();
-          }).then(function(json) {
-            json.should.be.eql(test.resdata); // Use should.js for object comparison
+            return res.text();
+          }).then(function(body) {
+            try {
+              const json = JSON.parse(body);
 
-            return Promise.all(dbtables.map(function(table) {
-              // Check if data in DB is as expected
-              return new Promise(function(resolve, reject) {
-                if (!table.result || !table.result.data) {
-                  resolve();
-                  return;
-                }
+              json.should.be.eql(test.resdata); // Use should.js for object comparison
 
-                table.table.findAll(function(err, _records) {
-                  if (err) {
-                    reject(err);
-                  }
-
-                  const records = _records.map(function(record) {
-                    return record.getAll();
-                  }).sort(function(record1, record2) {
-                    return record1.id - record2.id;
-                  });
-
-                  if (!Array.isArray(table.result.data)) {
-                    table.result.data = [table.result.data];
-                  }
-
-                  for (let i = 0; i < records.length; i++) {
-                    // Check if there is Restament.not
-                    for (const key of Object.getOwnPropertyNames(table.result.data[i])) {
-                      if (typeof table.result.data[i][key] === "object" && table.result.data[i][key].type === "not") {
-                        expect(table.result.data[i][key]).not.to.be(records[i][key]);
-                        delete table.result.data[i][key];
-                        delete records[i][key];
-                      }
-                    }
-                    records[i].should.be.eql(table.result.data[i]); // Use should.js for object comparison
-                  }
-
-                  resolve();
-                });
-              }).then(function() {
+              return Promise.all(dbtables.map(function(table) {
+                // Check if data in DB is as expected
                 return new Promise(function(resolve, reject) {
-                  if (!table.result || !table.result.uploads) {
+                  if (!table.result || !table.result.data) {
                     resolve();
                     return;
                   }
 
-                  table.result.uploads.forEach(function(upload) {
-                    const uploadedFileName = path.join(self.uploadDir, upload.filename);
+                  table.table.findAll(function(err, _records) {
+                    if (err) {
+                      reject(err);
+                    }
 
-                    imageDiff({
-                      actualImage:   uploadedFileName,
-                      expectedImage: upload.original,
-                      diffImage:     path.join(self.logDir, "images/diff")
-                    }, function(err, imagesAreSame) {
-                      if (err) {
-                        reject(err);
-                      }
+                    const records = _records.map(function(record) {
+                      return record.getAll();
+                    }).sort(function(record1, record2) {
+                      return record1.id - record2.id;
+                    });
 
-                      // Save image if images doesn't match
-                      if (!imagesAreSame) {
-                        const resultDir = path.join(__dirname, "../tmp/images");
+                    if (!Array.isArray(table.result.data)) {
+                      table.result.data = [table.result.data];
+                    }
 
-                        if (fs.existsSync(uploadedFileName)) {
-                          fs.copySync(uploadedFileName, path.join(resultDir, "uploaded"));
-                        } else {
-                          reject(new Error(uploadedFileName + " doesn't exist!"));
+                    for (let i = 0; i < records.length; i++) {
+                      for (const key of Object.getOwnPropertyNames(table.result.data[i])) {
+                        const expectedColumnData = table.result.data[i][key],
+                              actualColumnData = records[i][key];
+
+                        if (typeof expectedColumnData === "object" && expectedColumnData.type === "not") { // If Restament.not is expected
+                          expect(expectedColumnData).not.to.be(actualColumnData);
+                        } else if (typeof expectedColumnData === "function") {
+                          expect(expectedColumnData(actualColumnData)).to.be(true);
+                        } else { // expectedColumnData is literal
+                          // Check equality
+                          expect(actualColumnData).to.be(table.result.data[i]);
                         }
-
-                        if (fs.existsSync(upload.original)) {
-                          fs.copySync(upload.original, path.join(resultDir, "expected"));
-                        } else {
-                          reject(new Error(upload.original + " doesn't exist!"));
-                        }
                       }
+                    }
 
-                      expect(imagesAreSame).to.be(true);
+                    resolve();
+                  });
+                }).then(function() {
+                  return new Promise(function(resolve, reject) {
+                    if (!table.result || !table.result.uploads) {
                       resolve();
+                      return;
+                    }
+
+                    table.result.uploads.forEach(function(upload) {
+                      const uploadedFileName = path.join(self.uploadDir, upload.filename);
+
+                      imageDiff({
+                        actualImage:   uploadedFileName,
+                        expectedImage: upload.original,
+                        diffImage:     path.join(self.logDir, "images/diff")
+                      }, function(err, imagesAreSame) {
+                        if (err) {
+                          reject(err);
+                        }
+
+                        // Save image if images doesn't match
+                        if (!imagesAreSame) {
+                          const resultDir = path.join(__dirname, "../tmp/images");
+
+                          if (fs.existsSync(uploadedFileName)) {
+                            fs.copySync(uploadedFileName, path.join(resultDir, "uploaded"));
+                          } else {
+                            reject(new Error(uploadedFileName + " doesn't exist!"));
+                          }
+
+                          if (fs.existsSync(upload.original)) {
+                            fs.copySync(upload.original, path.join(resultDir, "expected"));
+                          } else {
+                            reject(new Error(upload.original + " doesn't exist!"));
+                          }
+                        }
+
+                        expect(imagesAreSame).to.be(true);
+                        resolve();
+                      });
                     });
                   });
                 });
-              });
-            }));
+              }));
+            } catch (e) {
+              if (e instanceof SyntaxError) {
+                return Promise.reject(
+                  "Response body is not JSON! Response body is:\n"
+                  + "--------------------\n"
+                  + body + "\n"
+                  + "--------------------\n"
+                );
+              }
+            }
           }).then(function() {
             if (typeof test.after === "function") {
               return test.after();
