@@ -227,8 +227,11 @@ module.exports = class {
             });
           }).then(function(res) { // Assertion for response
             expect(res.status).to.be(test.status);
-            return res.json();
-          }).then(function(json) {
+            return res.text();
+          }).then(function(body) {
+            try {
+              const json = JSON.parse(body);
+
             json.should.be.eql(test.resdata); // Use should.js for object comparison
 
             return Promise.all(dbtables.map(function(table) {
@@ -311,6 +314,16 @@ module.exports = class {
                 });
               });
             }));
+            } catch (e) {
+              if (e instanceof SyntaxError) {
+                return Promise.reject(
+                  "Response body is not JSON! Response body is:\n"
+                  + "--------------------\n"
+                  + body + "\n"
+                  + "--------------------\n"
+                );
+              }
+            }
           }).then(function() {
             if (typeof test.after === "function") {
               return test.after();
