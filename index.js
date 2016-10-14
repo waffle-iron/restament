@@ -260,8 +260,11 @@ module.exports = class {
                     for (let i = 0; i < records.length; i++) {
                       // Check if there is Restament.not
                       for (const key of Object.getOwnPropertyNames(table.result.data[i])) {
-                        if (typeof table.result.data[i][key] === "object" && table.result.data[i][key].type === "not") {
-                          expect(table.result.data[i][key]).not.to.be(records[i][key]);
+                        const expectedColumnData = table.result.data[i][key],
+                              actualColumnData = records[i][key];
+
+                        if (typeof expectedColumnData === "object" && expectedColumnData.type === "not") {
+                          expect(expectedColumnData).not.to.be(actualColumnData);
                           delete table.result.data[i][key];
                           delete records[i][key];
                         }
