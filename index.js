@@ -121,19 +121,23 @@ module.exports = class {
 
           return new Promise(function(resolve, reject) {
             // Empty storage directory
-            fs.emptyDirSync(self.uploadDir);
+            try {
+              fs.emptyDirSync(self.uploadDir);
 
-            // Reset auto increment
-            Promise.all((Array.isArray(test.db) ? test.db : [test.db]).map(function(table) {
-              return new Promise(function(_resolve, _reject) {
-                lightOrm.driver.query("ALTER TABLE " + table.tablename + " AUTO_INCREMENT = 1;", function(err) {
-                  if (err) {
-                    _reject(err);
-                  }
-                  _resolve();
+              // Reset auto increment
+              Promise.all((Array.isArray(test.db) ? test.db : [test.db]).map(function(table) {
+                return new Promise(function(_resolve, _reject) {
+                  lightOrm.driver.query("ALTER TABLE " + table.tablename + " AUTO_INCREMENT = 1;", function(err) {
+                    if (err) {
+                      _reject(err);
+                    }
+                    _resolve();
+                  });
                 });
-              });
-            })).then(resolve).catch(reject);
+              })).then(resolve).catch(reject);
+            } catch (err) {
+              reject(err);
+            }
           }).then(function() {
             // Remove existing records
             return Promise.all(dbtables.map(function(dbtable) {
