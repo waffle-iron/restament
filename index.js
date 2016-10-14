@@ -157,6 +157,14 @@ module.exports = class {
               });
             }));
           }).then(function() {
+            //
+            // Before
+            //
+            if (typeof test.before === "function") {
+              return test.before();
+            }
+            return Promise.resolve();
+          }).then(function() {
             return Promise.all(dbtables.map(function(table) {
               let models = []; // eslint-disable-line prefer-const
 
@@ -206,14 +214,6 @@ module.exports = class {
               }));
             }));
             // End of Mockup Data generation
-          }).then(function() {
-            //
-            // Before
-            //
-            if (typeof test.before === "function") {
-              return test.before();
-            }
-            return Promise.resolve();
           }).then(function() {
             //
             // Testing REST API
